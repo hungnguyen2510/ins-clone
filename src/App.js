@@ -4,8 +4,10 @@ import Post from "./components/Post";
 import { Button } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import { db, auth } from "./firebase";
+
 import ModalSignIn from "./components/ModalSignIn";
 import ModalSignUp from "./components/ModalSignUp";
+import ImageUpload from "./components/ImageUpload";
 
 function getModalStyle() {
   const top = 50;
@@ -84,14 +86,16 @@ function App() {
   }, []);
 
   useEffect(() => {
-    db.collection("posts").onSnapshot((snapshot) => {
-      setPosts(
-        snapshot.docs.map((doc) => ({
-          id: doc.id,
-          data: doc.data(),
-        }))
-      );
-    });
+    db.collection("posts")
+      .orderBy("timestamp", "desc")
+      .onSnapshot((snapshot) => {
+        setPosts(
+          snapshot.docs.map((doc) => ({
+            id: doc.id,
+            data: doc.data(),
+          }))
+        );
+      });
   }, []);
   return (
     <div className="app">
@@ -127,17 +131,28 @@ function App() {
           alt=""
           className="app_headerImage"
         />
+        {user ? (
+          <Button onClick={() => auth.signOut()}>Logout</Button>
+        ) : (
+          <div className="app_loginContainer">
+            <Button onClick={() => setOpenSignIn(true)}>Sign In</Button>
+            <Button onClick={() => setOpenSignUp(true)}>Sign Up</Button>
+          </div>
+        )}
       </div>
-      {user ? (
-        <Button onClick={() => auth.signOut()}>Logout</Button>
+
+      {user?.displayName ? (
+        <ImageUpload username={user.displayName} />
       ) : (
-        <div className="app_loginContainer">
-          <Button onClick={() => setOpenSignIn(true)}>Sign In</Button>
-          <Button onClick={() => setOpenSignUp(true)}>Sign Up</Button>
+        <div className="app_needLogin">
+          <h3>Post! You need to login</h3>
+          <Button className="btn-signin" onClick={() => setOpenSignIn(true)}>Sign In</Button>
+          <Button className="btn-signup" onClick={() => setOpenSignUp(true)}>Sign Up</Button>
         </div>
       )}
-
-      {posts && posts.length > 0 ? <Post posts={posts} /> : "Loading....."}
+      <div className="app_posts">
+        {posts && posts.length > 0 ? <Post posts={posts} /> : "Loading....."}
+      </div>
     </div>
   );
 }

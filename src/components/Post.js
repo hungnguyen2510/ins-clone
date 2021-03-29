@@ -1,5 +1,6 @@
 import "../Post.css";
 import Avatar from "@material-ui/core/Avatar";
+import {useState, useEffect} from 'react';
 const Post = ({posts}) => {
   return posts.map((post) => (
     // console.log(post.data),
